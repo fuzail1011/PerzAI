@@ -4,7 +4,11 @@ from app.config import Settings
 
 Settings()
 # Async SQLAlchemy engine
-engine = create_async_engine(Settings.DATABASE_URL, echo=True, future=True)
+engine = create_async_engine(
+    Settings.DATABASE_URL,
+    echo=True,
+    future=True,
+)
 
 # Async session factory
 AsyncSessionLocal = sessionmaker(

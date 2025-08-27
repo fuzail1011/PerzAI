@@ -1,7 +1,7 @@
 import psycopg
 from sqlalchemy.ext.asyncio import create_async_engine
 from app.config import Settings
-from app.models.user import Base
+from app.models.user import User
 from loguru import logger
 
 
@@ -38,9 +38,12 @@ async def init_db_models() -> None:
     """
     Settings.validate()
 
-    engine = create_async_engine(Settings.DATABASE_URL, echo=True)
+    engine = create_async_engine(
+        Settings.DATABASE_URL,
+        echo=True,
+    )
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        await conn.run_sync(User.metadata.create_all)
 
     await engine.dispose()
     logger.success("✅ Database tables ensured.")

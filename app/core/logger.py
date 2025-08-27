@@ -39,4 +39,4 @@ def setup_logger():
         diagnose=True,
     )
 
-    logger.info("✅ Logger initialized and writing to log/megalithiq.log")
+    logger.info("✅ Logger initialized and writing to log/perzAI.log")
