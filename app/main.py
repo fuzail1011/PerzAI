@@ -1,11 +1,14 @@
 from fastapi import FastAPI
 from app.db.init_db import ensure_database, init_db_models
 from api import auth as auth_router
+from api import persona as persona_router
 from loguru import logger
+from app.core.logger import setup_logger
 
 
 def create_app() -> FastAPI:
     app = FastAPI(title="PerzAI API")
+    setup_logger()
 
     @app.on_event("startup")
     async def startup():
@@ -14,6 +17,7 @@ def create_app() -> FastAPI:
         await init_db_models()
 
     app.include_router(auth_router.router)
+    app.include_router(persona_router.router)
 
     @app.get("/")
     def root():
