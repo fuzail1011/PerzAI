@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UniqueConstraint, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.base import Base
@@ -24,6 +24,10 @@ class Persona(Base):
     )
     description = Column(
         String,
+        nullable=True,
+    )
+    system_prompt = Column(
+        Text,
         nullable=True,
     )
 

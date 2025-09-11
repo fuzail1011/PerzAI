@@ -3,7 +3,7 @@ from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
 from app.models.persona import Persona
-from app.schemas.persona import PersonaCreate, PersonaDelete
+from app.schemas.persona import PersonaCreate, PersonaDelete, SystemPromptUpdate
 
 
 async def create_persona(
@@ -81,3 +81,29 @@ async def delete_persona(
         "status": "success",
         "message": f"Persona '{persona.name}' deleted",
     }
+
+
+async def update_system_prompt(
+    db: AsyncSession,
+    persona_id: int,
+    user_id: int,
+    system_prompt: str,
+):
+    result = await db.execute(
+        select(Persona).where(
+            Persona.id == persona_id,
+            Persona.user_id == user_id,
+        )
+    )
+    persona = result.scalars().first()
+
+    if not persona:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Persona not found",
+        )
+
+    persona.system_prompt = system_prompt
+    await db.commit()
+    await db.refresh(persona)
+    return persona
