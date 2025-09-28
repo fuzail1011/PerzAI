@@ -15,6 +15,8 @@ class PersonaDelete(BaseModel):
 class PersonaOut(BaseModel):
     id: int
     name: str
+    username: str
+    email: str
     description: str | None
     system_prompt: str | None = None
     created_at: datetime

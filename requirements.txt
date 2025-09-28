@@ -8,3 +8,9 @@ pydantic
 python-dotenv
 pydantic[email]
 loguru
+pdfplumber
+python-docx
+openpyxl
+pgvector
+langchain
+aiohttp
