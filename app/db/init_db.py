@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from app.config import Settings
 from app.models.user import User
 from app.models.persona import Persona
+from app.models.knowledge_base import KnowledgeBase
 from loguru import logger
 
 
@@ -46,6 +47,7 @@ async def init_db_models() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(User.metadata.create_all)
         await conn.run_sync(Persona.metadata.create_all)
+        await conn.run_sync(KnowledgeBase.metadata.create_all)
 
     await engine.dispose()
     logger.success("✅ Database tables ensured.")

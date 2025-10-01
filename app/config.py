@@ -23,10 +23,10 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
     # Azure OpenAI
-    AZURE_API_KEY: str = os.getenv("AZURE_API_KEY", "")
-    AZURE_ENDPOINT: str = os.getenv("AZURE_ENDPOINT", "")
-    AZURE_DEPLOYMENT: str = os.getenv("AZURE_DEPLOYMENT", "text-embedding-3-small")
-    AZURE_API_VERSION: str = os.getenv("AZURE_API_VERSION", "2024-06-01")
+    AZURE_API_KEY: str = os.getenv("AZURE_OPENAI_API_KEY", "")
+    AZURE_ENDPOINT: str = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+    AZURE_DEPLOYMENT: str = os.getenv("AZURE_OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+    AZURE_API_VERSION: str = os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
 
     # Indexing
     INDEX_NAME: str = os.getenv("INDEX_NAME", "perzai_index")

@@ -9,16 +9,16 @@ class TextExtractor:
     Dispatches file parsing based on extension.
     """
 
-    def read_file(self, file, filename: str) -> str:
+    async def read_file(self, file, filename: str) -> list[str]:
         file_type = filename.split(".")[-1].lower()
 
         if file_type == "pdf":
-            return extract_text_from_pdf(file)
+            return await extract_text_from_pdf(file)
         elif file_type == "docx":
-            return extract_text_from_docx(file)
+            return await extract_text_from_docx(file)
         elif file_type == "xlsx":
-            return extract_text_from_xlsx(file)
+            return await extract_text_from_xlsx(file)
         elif file_type == "txt":
-            return extract_text_from_txt(file)
+            return await extract_text_from_txt(file)
 
-        return ""
+        return []

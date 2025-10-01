@@ -14,3 +14,4 @@ openpyxl
 pgvector
 langchain
 aiohttp
+python-multipart
