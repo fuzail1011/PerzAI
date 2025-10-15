@@ -5,6 +5,9 @@ from app.models.knowledge_base import KnowledgeBase
 from app.chunking.chunk import chunk_document_by_page
 import mimetypes
 from app.config import Settings
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from app.models.persona import Persona
 
 Settings.validate()
 
@@ -102,4 +105,41 @@ async def ingest_document(
             "category": category,
         },
         "message": "Document ingested successfully",
+    }
+
+
+async def get_documents_by_user(
+    db: AsyncSession,
+    user_id: int,
+):
+    """
+    Returns all documents grouped by persona for a given user_id
+    """
+    stmt = (
+        select(
+            KnowledgeBase.persona_id,
+            Persona.name.label("persona_name"),
+            KnowledgeBase.document_name,
+        )
+        .join(Persona, Persona.id == KnowledgeBase.persona_id)
+        .where(KnowledgeBase.user_id == user_id)
+        .distinct()
+    )
+
+    result = await db.execute(stmt)
+    rows = result.all()
+
+    personas = {}
+    for persona_id, persona_name, document_name in rows:
+        if persona_id not in personas:
+            personas[persona_id] = {
+                "persona_id": persona_id,
+                "persona_name": persona_name,
+                "kb_documents": [],
+            }
+        personas[persona_id]["kb_documents"].append(document_name)
+
+    return {
+        "status": "success",
+        "personas": list(personas.values()),
     }

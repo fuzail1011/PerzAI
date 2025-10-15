@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.core.security import get_current_user
-from app.services.knowledge_service import ingest_document
+from app.services.knowledge_service import ingest_document, get_documents_by_user
 from app.parser.main_extractor import TextExtractor
 
 router = APIRouter(prefix="/ingest", tags=["ingest"])
@@ -30,3 +30,13 @@ async def upload_document(
         source,
         category,
     )
+
+
+@router.get("/documents/")
+async def fetch_user_documents(
+    db: AsyncSession = Depends(get_db),
+    current_user: str = Depends(get_current_user),  # returns user dict with id
+):
+    user_id = int(current_user)  # current_user is a str, convert to int
+    documents = await get_documents_by_user(db, user_id)
+    return documents
