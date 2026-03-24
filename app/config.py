@@ -22,6 +22,19 @@ class Settings:
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
+    # Azure OpenAI
+    AZURE_API_KEY: str = os.getenv("AZURE_OPENAI_API_KEY", "")
+    AZURE_ENDPOINT: str = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+    AZURE_DEPLOYMENT: str = os.getenv("AZURE_OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+    AZURE_API_VERSION: str = os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
+
+    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
+    OPENROUTER_ENDPOINT: str = os.getenv("OPENROUTER_ENDPOINT", "")
+    OPENROUTER_LLM_MODEL: str = os.getenv("OPENROUTER_LLM_MODEL", "")
+
+    # Indexing
+    INDEX_NAME: str = os.getenv("INDEX_NAME", "perzai_index")
+
     # App
     APP_HOST: str = os.getenv("APP_HOST", "0.0.0.0")
     APP_PORT: int = int(os.getenv("APP_PORT", 8001))
