@@ -1,5 +1,6 @@
 import psycopg
 from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.sql import text
 from app.config import Settings
 from app.models.user import User
 from app.models.persona import Persona
@@ -44,10 +45,18 @@ async def init_db_models() -> None:
         Settings.DATABASE_URL,
         echo=True,
     )
-    async with engine.begin() as conn:
+    # Step 1: Create extension (separate connection)
+    async with engine.connect() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        await conn.commit()
+        logger.info("✅ pgvector extension ensured.")
+
+    # Step 2: Create tables (separate connection)
+    async with engine.connect() as conn:
         await conn.run_sync(User.metadata.create_all)
         await conn.run_sync(Persona.metadata.create_all)
         await conn.run_sync(KnowledgeBase.metadata.create_all)
+        await conn.commit()
 
     await engine.dispose()
     logger.success("✅ Database tables ensured.")
