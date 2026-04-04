@@ -1,4 +1,5 @@
 import aiohttp
+import time
 from datetime import datetime
 import uuid
 from app.models.knowledge_base import KnowledgeBase
@@ -8,6 +9,7 @@ from app.config import Settings
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.persona import Persona
+from loguru import logger
 
 Settings.validate()
 
@@ -24,6 +26,7 @@ async def get_embedding(text: str):
     }
     payload = {"input": text}
 
+    t0 = time.perf_counter()
     async with aiohttp.ClientSession() as session:
         async with session.post(
             url,
@@ -33,6 +36,7 @@ async def get_embedding(text: str):
             if resp.status != 200:
                 raise Exception(await resp.text())
             data = await resp.json()
+            logger.info(f"embedding | endpoint={Settings.AZURE_ENDPOINT} model={Settings.AZURE_DEPLOYMENT} duration={time.perf_counter() - t0:.3f}s")
             return data["data"][0]["embedding"]
 
 

@@ -1,4 +1,5 @@
 import aiohttp
+import time
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from fastapi import HTTPException, status
@@ -6,6 +7,7 @@ from app.models.persona import Persona
 from app.models.knowledge_base import KnowledgeBase
 from app.services.knowledge_service import get_embedding
 from app.config import Settings
+from loguru import logger
 
 
 Settings.validate()
@@ -26,6 +28,7 @@ async def call_llm(context: str, question: str):
         {"role": "user", "content": question},
     ]
 
+    t0 = time.perf_counter()
     async with aiohttp.ClientSession() as session:
         async with session.post(
             url=Settings.OPENROUTER_ENDPOINT,
@@ -44,6 +47,8 @@ async def call_llm(context: str, question: str):
                     detail=f"LLM API error: {await resp.text()}",
                 )
             result = await resp.json()
+            usage = result.get("usage", {})
+            logger.info(f"llm | endpoint={Settings.OPENROUTER_ENDPOINT} model={Settings.OPENROUTER_LLM_MODEL} prompt_tokens={usage.get('prompt_tokens', '?')} completion_tokens={usage.get('completion_tokens', '?')} duration={time.perf_counter() - t0:.3f}s")
             if "choices" in result and result["choices"]:
                 return result["choices"][0]["message"]["content"]
             return ""
@@ -75,20 +80,7 @@ async def retrieve_response(
             detail="Persona not found for this user",
         )
 
-    # 2️⃣ Fetch all chunks for this persona
-    result = await db.execute(
-        select(KnowledgeBase.chunk_text)
-        .where(KnowledgeBase.persona_id == persona_id)
-        .where(KnowledgeBase.user_id == user_id)
-    )
-    chunks = [row[0] for row in result.all()]
-    if not chunks:
-        context = "No knowledge available yet."
-    else:
-        # Concatenate all chunks for context
-        context = "\n".join(chunks)
-
-    # 3️⃣ Generate embedding for query (optional if semantic search is needed)
+    # 2️⃣ Embed query and retrieve top_k most relevant chunks via cosine similarity
     query_embedding = await get_embedding(query)
     if len(query_embedding) != EMBEDDING_DIM:
         raise HTTPException(
@@ -96,7 +88,17 @@ async def retrieve_response(
             detail=f"Query embedding dimension mismatch: expected {EMBEDDING_DIM}, got {len(query_embedding)}",
         )
 
-    # 4️⃣ Call LLM
+    result = await db.execute(
+        select(KnowledgeBase.chunk_text)
+        .where(KnowledgeBase.persona_id == persona_id)
+        .where(KnowledgeBase.user_id == user_id)
+        .order_by(KnowledgeBase.embedding.cosine_distance(query_embedding))
+        .limit(top_k)
+    )
+    chunks = [row[0] for row in result.all()]
+    context = "\n".join(chunks) if chunks else "No knowledge available yet."
+
+    # 3️⃣ Call LLM
     llm_response = await call_llm(context=context, question=query)
 
     # 5️⃣ Return response JSON

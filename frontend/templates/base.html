@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PerzAI{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Inter"', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#F6FFF8',
+                            100: '#EAF4F4',
+                            200: '#CCE3DE',
+                            300: '#A4C3B2',
+                            600: '#6B9080', // Primary Accent
+                            900: '#1D2B24', // Deep Charcoal Green
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s ease-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(12px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* Modernized Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #F6FFF8; }
+        ::-webkit-scrollbar-thumb { background: #CCE3DE; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A4C3B2; }
+
+        /* HTMX Loading Indicator */
+        .htmx-indicator { opacity: 0; transition: opacity 200ms ease; }
+        .htmx-request .htmx-indicator,
+        .htmx-request.htmx-indicator { opacity: 1; }
+
+        /* Custom Tab Styling */
+        .tab-btn.active {
+            color: #1D2B24 !important;
+            border-bottom: 2px solid #6B9080;
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Global Autofill Fix (Prevent Black/Yellow boxes) */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+            -webkit-text-fill-color: #1D2B24 !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { animation: spin 0.8s linear infinite; }
+
+        /* High-contrast Botanical Card */
+        .glass-card {
+            background: #ffffff;
+            border: 2px solid #CCE3DE;
+            box-shadow: 0 10px 40px rgba(29, 43, 36, 0.05);
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-[#F6FFF8] text-[#1D2B24] font-sans antialiased min-h-screen">
+    {% block body %}{% endblock %}
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed bottom-8 right-8 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <script>
+        /**
+         * Global notification system
+         * type: 'success' | 'error'
+         */
+        function showToast(message, type = 'success') {
+            const wrap = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            
+            // Success: Deep Sage | Error: Deep Muted Red
+            const bgColor = type === 'success' ? '#6B9080' : '#991b1b';
+            
+            el.className = `text-white text-sm font-black px-6 py-4 rounded-2xl shadow-2xl pointer-events-auto animate-slide-up flex items-center gap-3 border-b-4 border-black/10`;
+            el.style.backgroundColor = bgColor;
+            
+            const icon = type === 'success'
+                ? `<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`
+                : `<svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>`;
+            
+            el.innerHTML = `${icon}<span class="uppercase tracking-widest">${message}</span>`;
+            
+            wrap.appendChild(el);
+            
+            // Smooth exit
+            setTimeout(() => { 
+                el.style.opacity = '0'; 
+                el.style.transform = 'translateY(10px)';
+                el.style.transition = 'all 0.4s ease'; 
+                setTimeout(() => el.remove(), 400); 
+            }, 4000);
+        }
+
+        // Global HTMX error hooks
+        document.addEventListener('htmx:responseError', (e) => {
+            let msg = 'Server Error';
+            try { 
+                const d = JSON.parse(e.detail.xhr.responseText); 
+                msg = d.detail || d.message || msg; 
+            } catch {}
+            showToast(msg, 'error');
+        });
+
+        document.addEventListener('htmx:sendError', () => showToast('Network connection failed', 'error'));
+    </script>
+</body>
+</html>

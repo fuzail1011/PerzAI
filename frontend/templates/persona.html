@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}{{ persona.name }} — PerzAI{% endblock %}
+
+{% block head %}
+<style>
+    /* Force the screen to be exactly the height of the window */
+    html, body { height: 100vh; overflow: hidden; }
+    
+    #chat-messages { scroll-behavior: smooth; }
+    
+    /* Message Bubbles */
+    .msg-user .bubble { background-color: #1D2B24; color: white; border-radius: 20px 4px 20px 20px; }
+    .msg-assistant .bubble { background-color: #EAF4F4; border: 2px solid #CCE3DE; color: #1D2B24; border-radius: 4px 20px 20px 20px; }
+    
+    /* Typing Animation */
+    .typing-dot { background-color: #6B9080; animation: bounce 1.2s infinite; }
+    .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+
+    /* Tab Logic: Hidden panels are display:none, active is display:flex */
+    .tab-panel { display: none; height: 100%; flex-direction: column; }
+    .tab-panel.active { display: flex; }
+
+    .tab-btn.active {
+        color: #1D2B24 !important;
+        border-bottom: 3px solid #6B9080 !important;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="h-screen flex flex-col bg-[#F6FFF8]">
+
+    <!-- Navbar: Fixed Height -->
+    <nav class="h-16 border-b-2 bg-white/80 backdrop-blur-md shrink-0 flex items-center" style="border-color: #CCE3DE;">
+        <div class="max-w-5xl w-full mx-auto px-6 flex items-center gap-4">
+            <a href="/ui/dashboard" class="p-2 rounded-xl transition-all hover:bg-[#EAF4F4]" style="color: #6B9080;">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+            </a>
+            <div class="h-6 w-px bg-[#CCE3DE]"></div>
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white font-black text-sm shadow-sm" style="background-color: #6B9080;">
+                    {{ persona.name[0].upper() }}
+                </div>
+                <div class="truncate">
+                    <span class="font-black text-sm uppercase tracking-tight" style="color: #1D2B24;">{{ persona.name }}</span>
+                </div>
+            </div>
+            <a href="/ui/logout" class="ml-auto text-xs font-black uppercase tracking-widest" style="color: #6B9080;">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Tab bar: Fixed Height -->
+    <div class="h-14 border-b-2 bg-white shrink-0 flex items-center" style="border-color: #CCE3DE;">
+        <div class="max-w-5xl w-full mx-auto px-6 flex h-full">
+            <button id="btn-chat" onclick="showTab('chat')" class="tab-btn active px-6 h-full text-xs font-black uppercase tracking-widest transition-all" style="color: #A4C3B2;">Chat</button>
+            <button id="btn-kb" onclick="showTab('kb')" class="tab-btn px-6 h-full text-xs font-black uppercase tracking-widest transition-all" style="color: #A4C3B2;">Knowledge</button>
+            <button id="btn-prompt" onclick="showTab('prompt')" class="tab-btn px-6 h-full text-xs font-black uppercase tracking-widest transition-all" style="color: #A4C3B2;">Settings</button>
+        </div>
+    </div>
+
+    <!-- Main Content: Occupies all remaining space -->
+    <main class="flex-1 overflow-hidden relative max-w-5xl w-full mx-auto">
+
+        <!-- CHAT TAB: Stays in DOM when hidden to preserve history -->
+        <div id="tab-chat" class="tab-panel active px-6 py-6">
+            <!-- Messages container scrolls independently -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto space-y-6 pb-4 pr-2">
+                <div class="msg-assistant flex gap-3 animate-fade-in">
+                    <div class="w-9 h-9 rounded-xl shrink-0 flex items-center justify-center text-white font-black text-sm" style="background-color: #6B9080;">{{ persona.name[0].upper() }}</div>
+                    <div class="bubble px-5 py-3.5 max-w-2xl shadow-sm">
+                        <p class="text-sm font-bold">Hi! I'm <strong>{{ persona.name }}</strong>. How can I help you today?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input area fixed at bottom of this panel -->
+            <div class="pt-4 shrink-0">
+                <form id="chat-form" hx-post="/ui/persona/{{ persona.id }}/chat" hx-target="#chat-messages" hx-swap="beforeend" hx-on::before-request="onChatSend()" hx-on::after-request="onChatDone(event)"
+                      class="flex items-end gap-3 bg-white border-2 rounded-[1.5rem] p-3 shadow-xl shadow-[#1D2B24]/5" style="border-color: #1D2B24;">
+                    <textarea name="query" id="chat-input" rows="1" required placeholder="Message {{ persona.name }}..." class="flex-1 bg-transparent text-sm font-bold placeholder-[#A4C3B2] focus:outline-none resize-none max-h-32 py-2 px-2" style="color: #1D2B24;" onkeydown="handleChatKey(event)"></textarea>
+                    <button type="submit" class="shrink-0 w-11 h-11 rounded-xl text-white flex items-center justify-center transition-all shadow-lg active:scale-95" style="background-color: #1D2B24;">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- KNOWLEDGE BASE TAB -->
+        <div id="tab-kb" class="tab-panel px-6 py-8 overflow-y-auto">
+            <div class="bg-white border-2 rounded-[2rem] p-8 shadow-sm mb-8 shrink-0" style="border-color: #CCE3DE;">
+                <h3 class="text-lg font-black uppercase tracking-tight mb-6 flex items-center gap-3" style="color: #1D2B24;">Ingest Knowledge</h3>
+                <form hx-post="/ui/persona/{{ persona.id }}/upload" hx-target="#doc-list" hx-swap="afterbegin" hx-encoding="multipart/form-data" hx-on::after-request="onUploadDone(event)" class="space-y-6">
+                    <div class="border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer hover:bg-[#F6FFF8]" style="border-color: #CCE3DE;" onclick="document.getElementById('file-input').click()">
+                        <input type="file" id="file-input" name="file" required accept=".pdf,.docx,.xlsx,.txt" class="hidden" onchange="updateFileName(this)">
+                        <p id="file-label" class="text-sm font-black uppercase tracking-widest" style="color: #1D2B24;">Drop file or click to browse</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="text" name="source" value="manual" class="w-full bg-[#EAF4F4] border-2 rounded-xl px-4 py-3 text-sm font-bold" style="border-color: #CCE3DE;">
+                        <input type="text" name="category" value="general" class="w-full bg-[#EAF4F4] border-2 rounded-xl px-4 py-3 text-sm font-bold" style="border-color: #CCE3DE;">
+                    </div>
+                    <button type="submit" class="w-full py-4 rounded-2xl text-white text-xs font-black uppercase tracking-widest" style="background-color: #6B9080;">Process Document</button>
+                </form>
+            </div>
+            <div id="doc-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-10">
+                {% if documents %}{% for doc in documents %}{% with doc=doc %}{% include "doc_item.html" %}{% endwith %}{% endfor %}
+                {% else %}<div id="doc-empty" class="col-span-full border-2 border-dashed rounded-3xl py-12 text-center" style="border-color: #CCE3DE;">No documents indexed.</div>{% endif %}
+            </div>
+        </div>
+
+        <!-- SETTINGS TAB -->
+        <div id="tab-prompt" class="tab-panel px-6 py-8 overflow-y-auto">
+            <div class="bg-white border-2 rounded-[2rem] p-8 max-w-3xl shadow-sm" style="border-color: #CCE3DE;">
+                <h3 class="text-2xl font-black tracking-tight mb-8" style="color: #1D2B24;">Personality Core</h3>
+                <form hx-put="/ui/persona/{{ persona.id }}/system-prompt" hx-swap="none" hx-on::after-request="onPromptSaved(event)" class="space-y-6">
+                    <textarea name="system_prompt" rows="12" class="w-full bg-[#F6FFF8] border-2 rounded-2xl px-5 py-4 text-sm font-bold outline-none leading-relaxed" style="border-color: #CCE3DE; color: #1D2B24;">{{ persona.system_prompt or '' }}</textarea>
+                    <button type="submit" class="w-full py-4 rounded-2xl text-white text-xs font-black uppercase tracking-widest shadow-lg" style="background-color: #1D2B24;">Save Settings</button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+const PERSONA_INITIAL = {{ persona.name[0].upper() | tojson }};
+
+function showTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('btn-' + name).classList.add('active');
+    if(name === 'chat') scrollToBottom(); // Ensure scroll is correct when returning
+}
+
+function handleChatKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('chat-form').requestSubmit(); } }
+
+function onChatSend() {
+    const input = document.getElementById('chat-input');
+    const query = input.value.trim();
+    if (!query) return;
+    const msgs = document.getElementById('chat-messages');
+    msgs.insertAdjacentHTML('beforeend', `
+        <div class="msg-user flex gap-3 justify-end animate-fade-in pt-4">
+            <div class="bubble px-5 py-3.5 max-w-2xl shadow-md border-b-4 border-black/20 text-sm font-bold">${escapeHtml(query)}</div>
+        </div>
+        <div id="typing-indicator" class="msg-assistant flex gap-3 animate-fade-in pt-4">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-black text-sm" style="background-color: #6B9080;">${PERSONA_INITIAL}</div>
+            <div class="bubble px-5 py-3.5 flex items-center gap-1.5 shadow-sm"><div class="typing-dot w-2 h-2 rounded-full"></div><div class="typing-dot w-2 h-2 rounded-full"></div><div class="typing-dot w-2 h-2 rounded-full"></div></div>
+        </div>`);
+    input.value = ''; input.style.height = 'auto'; scrollToBottom();
+}
+
+function onChatDone(event) { document.getElementById('typing-indicator')?.remove(); scrollToBottom(); }
+function scrollToBottom() { const msgs = document.getElementById('chat-messages'); setTimeout(() => msgs.scrollTop = msgs.scrollHeight, 50); }
+function escapeHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function updateFileName(input) { const label = document.getElementById('file-label'); if (input.files[0]) { label.textContent = input.files[0].name; label.style.color = "#6B9080"; } }
+function onUploadDone(event) { if (event.detail.successful) showToast('indexed'); }
+function onPromptSaved(event) { if (event.detail.successful) showToast('saved'); }
+
+document.getElementById('chat-input').addEventListener('input', function() {
+    this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 128) + 'px';
+});
+</script>
+{% endblock %}

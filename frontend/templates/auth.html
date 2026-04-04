@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}PerzAI — Sign In{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col items-center justify-center px-4"
+     style="background-color: #F6FFF8; background-image: radial-gradient(at 0% 0%, #CCE3DE 0px, transparent 50%), radial-gradient(at 100% 100%, #EAF4F4 0px, transparent 50%);">
+
+    <div class="w-full max-w-[380px] animate-fade-in">
+        
+        <!-- Brand Section: Reduced margins and sizes -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl text-white font-bold text-xl mb-3 shadow-xl shadow-[#6B9080]/30 ring-4 ring-white"
+                 style="background-color: #6B9080;">
+                P
+            </div>
+            <h1 class="text-5xl font-black tracking-tighter leading-none"
+                style="color: #1D2B24;">
+                PerzAI
+            </h1>
+            <p class="mt-2 text-[10px] font-black uppercase tracking-[0.2em]"
+               style="color: #6B9080;">
+                One AI, Infinite personas
+            </p>
+        </div>
+
+        <!-- Main Card: Reduced padding and radius -->
+        <div class="bg-white border-2 shadow-[0_20px_50px_rgba(29,43,36,0.08)] rounded-3xl p-8"
+             style="border-color: #CCE3DE;">
+            
+            <!-- Tab Switcher: Slimmer -->
+            <div class="flex p-1 rounded-xl mb-6 border-2"
+                 style="background-color: #F6FFF8; border-color: #CCE3DE;">
+                <button id="tab-login-btn" onclick="switchAuthTab('login')"
+                        class="flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 bg-white shadow-sm border"
+                        style="color: #1D2B24; border-color: #CCE3DE;">
+                    SIGN IN
+                </button>
+                <button id="tab-signup-btn" onclick="switchAuthTab('signup')"
+                        class="flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 opacity-60 hover:opacity-100"
+                        style="color: #6B9080;">
+                    REGISTER
+                </button>
+            </div>
+
+            <!-- Error Banner: Compact -->
+            {% if error %}
+            <div class="mb-4 flex items-center gap-2 border-2 rounded-xl px-4 py-2.5 text-xs animate-shake"
+                 style="background-color: #fffafa; color: #991b1b; border-color: #fecaca;">
+                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="font-bold uppercase tracking-tight">{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Login Form: space-y-4 instead of 6 -->
+            <form id="form-login" action="/ui/login" method="post" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-black uppercase tracking-widest ml-1" style="color: #1D2B24;">Email</label>
+                    <input type="email" name="email" required autocomplete="email"
+                           class="w-full border-2 rounded-xl px-4 py-2.5 text-sm font-bold outline-none transition-all focus:ring-4"
+                           style="background-color: #ffffff; border-color: #CCE3DE; color: #1D2B24; --tw-ring-color: #6B908022;"
+                           placeholder="name@example.com">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-black uppercase tracking-widest ml-1" style="color: #1D2B24;">Password</label>
+                    <input type="password" name="password" required autocomplete="current-password"
+                           class="w-full border-2 rounded-xl px-4 py-2.5 text-sm font-bold outline-none transition-all focus:ring-4"
+                           style="background-color: #ffffff; border-color: #CCE3DE; color: #1D2B24; --tw-ring-color: #6B908022;"
+                           placeholder="••••••••">
+                </div>
+                <button type="submit"
+                        class="w-full py-3 rounded-xl font-black text-sm text-white transition-all shadow-lg shadow-[#6B9080]/20 active:scale-[0.97] mt-2 uppercase tracking-widest"
+                        style="background-color: #1D2B24;">
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="form-signup" action="/ui/signup" method="post" class="space-y-4 hidden">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-black uppercase tracking-widest ml-1" style="color: #1D2B24;">Username</label>
+                    <input type="text" name="username" required class="w-full border-2 rounded-xl px-4 py-2.5 text-sm font-bold outline-none" style="border-color: #CCE3DE;">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-black uppercase tracking-widest ml-1" style="color: #1D2B24;">Email</label>
+                    <input type="email" name="email" required class="w-full border-2 rounded-xl px-4 py-2.5 text-sm font-bold outline-none" style="border-color: #CCE3DE;">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-black uppercase tracking-widest ml-1" style="color: #1D2B24;">Password</label>
+                    <input type="password" name="password" required class="w-full border-2 rounded-xl px-4 py-2.5 text-sm font-bold outline-none" style="border-color: #CCE3DE;">
+                </div>
+                <button type="submit"
+                        class="w-full py-3 rounded-xl font-black text-sm text-white transition-all shadow-lg active:scale-[0.97] mt-2 uppercase tracking-widest"
+                        style="background-color: #6B9080;">
+                    Register
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center mt-6 text-[9px] font-black uppercase tracking-[0.3em]" style="color: #6B9080;">
+            The future of adaptive intelligence.
+        </p>
+    </div>
+</div>
+
+<script>
+function switchAuthTab(tab) {
+    const isLogin = tab === 'login';
+    const loginForm = document.getElementById('form-login');
+    const signupForm = document.getElementById('form-signup');
+    const loginBtn = document.getElementById('tab-login-btn');
+    const signupBtn = document.getElementById('tab-signup-btn');
+
+    loginForm.classList.toggle('hidden', !isLogin);
+    signupForm.classList.toggle('hidden', isLogin);
+
+    if (isLogin) {
+        loginBtn.className = "flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 bg-white shadow-sm border";
+        loginBtn.style.color = "#1D2B24";
+        loginBtn.style.borderColor = "#CCE3DE";
+        signupBtn.className = "flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 opacity-60 hover:opacity-100";
+        signupBtn.style.color = "#6B9080";
+    } else {
+        signupBtn.className = "flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 bg-white shadow-sm border";
+        signupBtn.style.color = "#1D2B24";
+        signupBtn.style.borderColor = "#CCE3DE";
+        loginBtn.className = "flex-1 py-2 text-xs font-black rounded-lg transition-all duration-300 opacity-60 hover:opacity-100";
+        loginBtn.style.color = "#6B9080";
+    }
+}
+{% if active_tab == 'signup' %}
+switchAuthTab('signup');
+{% endif %}
+</script>
+
+<style>
+    @keyframes fade-in { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+    input::placeholder { color: #A4C3B2; font-weight: 500; opacity: 0.5; }
+
+    /* Stop browser autofill from changing background to black/yellow */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active {
+        /* Use a massive inset shadow to force the background to white */
+        -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+        /* Force the text color to your deep charcoal #1D2B24 */
+        -webkit-text-fill-color: #1D2B24 !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+
+    /* Target Firefox as well */
+    input:autofill {
+        background-color: #ffffff !important;
+        color: #1D2B24 !important;
+    }
+</style>
+{% endblock %}

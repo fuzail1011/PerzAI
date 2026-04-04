@@ -4,6 +4,7 @@ from api import auth as auth_router
 from api import persona as persona_router
 from api import ingest as ingest_router
 from api import retrieve as retrieve_router
+from api import ui as ui_router
 from loguru import logger
 from app.core.logger import setup_logger
 
@@ -22,10 +23,7 @@ def create_app() -> FastAPI:
     app.include_router(persona_router.router)
     app.include_router(ingest_router.router)
     app.include_router(retrieve_router.router)
-
-    @app.get("/")
-    def root():
-        return {"message": "🚀 PerzAI API is running"}
+    app.include_router(ui_router.router)
 
     return app
 
