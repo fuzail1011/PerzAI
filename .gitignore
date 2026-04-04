@@ -16,3 +16,8 @@ venv/
 
 # Log files
 logs/
+
+# claude files
+CLAUDE.md
+claude/
+.claude/
