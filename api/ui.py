@@ -75,7 +75,7 @@ async def root_redirect(request: Request):
 async def login_page(request: Request):
     if get_user_id_from_cookie(request):
         return RedirectResponse("/ui/dashboard", status_code=302)
-    return templates.TemplateResponse("auth.html", {"request": request, "error": None})
+    return templates.TemplateResponse(request, "auth.html", {"error": None})
 
 
 @router.post("/ui/login", include_in_schema=False)
@@ -88,8 +88,9 @@ async def login_submit(
     user = await authenticate_user(db, email, password)
     if not user:
         return templates.TemplateResponse(
+            request,
             "auth.html",
-            {"request": request, "error": "Invalid email or password", "active_tab": "login"},
+            {"error": "Invalid email or password", "active_tab": "login"},
             status_code=401,
         )
     token = create_access_token(str(user.id))
@@ -110,8 +111,9 @@ async def signup_submit(
         user = await create_user(db, UserCreate(username=username, email=email, password=password))
     except HTTPException as e:
         return templates.TemplateResponse(
+            request,
             "auth.html",
-            {"request": request, "error": e.detail, "active_tab": "signup"},
+            {"error": e.detail, "active_tab": "signup"},
             status_code=400,
         )
     token = create_access_token(str(user.id))
@@ -146,8 +148,7 @@ async def dashboard(
 
     personas = await get_personas_for_user(db, int(user_id))
 
-    return templates.TemplateResponse("dashboard.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "dashboard.html", {
         "username": user.username if user else "User",
         "personas": [_persona_dict_to_obj(p) for p in personas],
     })
@@ -174,8 +175,7 @@ async def create_persona_htmx(
     )
     p = result.scalars().first()
 
-    return templates.TemplateResponse("persona_card.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "persona_card.html", {
         "persona": p,
     })
 
@@ -223,8 +223,7 @@ async def persona_page(
             documents = p_data["kb_documents"]
             break
 
-    return templates.TemplateResponse("persona.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "persona.html", {
         "persona": persona,
         "documents": documents,
     })
@@ -258,8 +257,7 @@ async def chat_htmx(
     persona = persona_result.scalars().first()
     initial = persona.name[0].upper() if persona else "A"
 
-    return templates.TemplateResponse("chat_message.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "chat_message.html", {
         "response": result.get("response", ""),
         "initial": initial,
     })
@@ -293,8 +291,7 @@ async def upload_htmx(
         raise HTTPException(status_code=400, detail=result.get("message", "Ingestion failed"))
 
     doc_name = result.get("document_name", file.filename)
-    return templates.TemplateResponse("doc_item.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "doc_item.html", {
         "doc": doc_name,
     })
 

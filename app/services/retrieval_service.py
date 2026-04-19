@@ -5,7 +5,7 @@ from sqlalchemy.future import select
 from fastapi import HTTPException, status
 from app.models.persona import Persona
 from app.models.knowledge_base import KnowledgeBase
-from app.services.knowledge_service import get_embedding
+from app.services.embedding_service import get_embedding
 from app.config import Settings
 from loguru import logger
 
@@ -13,7 +13,7 @@ from loguru import logger
 Settings.validate()
 
 
-EMBEDDING_DIM = 1536
+EMBEDDING_DIM = Settings.EMBEDDING_DIM
 
 
 async def call_llm(context: str, question: str):

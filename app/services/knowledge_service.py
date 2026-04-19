@@ -1,43 +1,16 @@
-import aiohttp
-import time
 from datetime import datetime
 import uuid
 from app.models.knowledge_base import KnowledgeBase
 from app.chunking.chunk import chunk_document_by_page
 import mimetypes
 from app.config import Settings
+from app.services.embedding_service import get_embedding
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.persona import Persona
 from loguru import logger
 
 Settings.validate()
-
-
-async def get_embedding(text: str):
-    url = (
-        f"{Settings.AZURE_ENDPOINT}/openai/deployments/"
-        f"{Settings.AZURE_DEPLOYMENT}/embeddings?"
-        f"api-version={Settings.AZURE_API_VERSION}"
-    )
-    headers = {
-        "Content-Type": "application/json",
-        "api-key": Settings.AZURE_API_KEY,
-    }
-    payload = {"input": text}
-
-    t0 = time.perf_counter()
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            url,
-            headers=headers,
-            json=payload,
-        ) as resp:
-            if resp.status != 200:
-                raise Exception(await resp.text())
-            data = await resp.json()
-            logger.info(f"embedding | endpoint={Settings.AZURE_ENDPOINT} model={Settings.AZURE_DEPLOYMENT} duration={time.perf_counter() - t0:.3f}s")
-            return data["data"][0]["embedding"]
 
 
 async def ingest_document(

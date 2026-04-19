@@ -22,6 +22,15 @@ class Settings:
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
+    # Embedding provider
+    EMBEDDING_TYPE: str = os.getenv("EMBEDDING_TYPE", "azure")  # "azure" | "local"
+    LOCAL_EMBEDDING_MODEL: str = os.getenv("LOCAL_EMBEDDING_MODEL", "all-mpnet-base-v2")
+    EMBEDDING_DIM: int = int(
+        os.getenv(
+            "EMBEDDING_DIM", "1536" if os.getenv("EMBEDDING_TYPE", "azure") == "azure" else "768"
+        )
+    )
+
     # Azure OpenAI
     AZURE_API_KEY: str = os.getenv("AZURE_OPENAI_API_KEY", "")
     AZURE_ENDPOINT: str = os.getenv("AZURE_OPENAI_ENDPOINT", "")

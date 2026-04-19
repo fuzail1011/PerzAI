@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
 fastapi
 jinja2
 uvicorn
@@ -17,3 +19,4 @@ pgvector==0.3.0
 langchain
 aiohttp
 python-multipart
+sentence-transformers

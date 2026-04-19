@@ -1,10 +1,31 @@
-__pycache__
-*.pyc
-*.pyo
-*.pyd
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/*.egg-info
+.pytest_cache
+
+# Virtual environments
+venv
+.venv
+env
+
+# Logs
+logs
+
+# Sentence-transformers / HuggingFace model cache
+.cache
+
+# Secrets and local config
 .env
+
+# Git
 .git
 .gitignore
+
+# Build/docs
 Dockerfile
 docker-compose.yml
 README.md
+CLAUDE.md

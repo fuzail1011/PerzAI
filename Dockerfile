@@ -1,14 +1,14 @@
-FROM python:3.13-alpine
+FROM python:3.13-slim
 
 # Environment settings
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies (needed for psycopg)
-RUN apk add --no-cache \
+# Install system dependencies (needed for psycopg and sentence-transformers)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    musl-dev \
-    libpq-dev
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app

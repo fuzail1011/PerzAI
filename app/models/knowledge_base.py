@@ -40,7 +40,7 @@ class KnowledgeBase(Base):
         nullable=False,
     )
     embedding = Column(
-        Vector(1536),
+        Vector(),
         nullable=False,
     )
     _metadata = Column(

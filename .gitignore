@@ -17,7 +17,13 @@ venv/
 # Log files
 logs/
 
+# HuggingFace / sentence-transformers model cache
+.cache/
+
 # claude files
 CLAUDE.md
 claude/
 .claude/
+
+# documentation files
+docs/
