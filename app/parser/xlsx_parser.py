@@ -1,13 +1,15 @@
+from io import BytesIO
 import openpyxl
 import re
 
 
-def extract_text_from_xlsx(file) -> list[str]:
+async def extract_text_from_xlsx(file) -> list[str]:
     """
     Reads text content from an XLSX file (all sheets).
     Returns the text as a single string.
     """
-    workbook = openpyxl.load_workbook(file, data_only=True)
+    file_bytes = await file.read()
+    workbook = openpyxl.load_workbook(BytesIO(file_bytes), data_only=True)
     chunks = []
 
     for sheet in workbook.sheetnames:

@@ -1,12 +1,14 @@
+from io import BytesIO
 import docx
 
 
-def extract_text_from_docx(file) -> list[str]:
+async def extract_text_from_docx(file) -> list[str]:
     """
     Reads text content from a DOCX file (paragraphs + tables).
     Returns the text as a single string.
     """
-    doc = docx.Document(file)
+    file_bytes = await file.read()
+    doc = docx.Document(BytesIO(file_bytes))
     chunks = []
 
     for paragraph in doc.paragraphs:

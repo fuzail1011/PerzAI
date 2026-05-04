@@ -14,6 +14,9 @@ class RetrievalRequest(BaseModel):
     query: str
     persona_id: int
     top_k: Optional[int] = 5
+    source: Optional[str] = None
+    category: Optional[str] = None
+    doc_type: Optional[str] = None
 
 
 @router.post("/")
@@ -23,8 +26,9 @@ async def retrieve_endpoint(
     current_user: str = Depends(get_current_user),
 ):
     """
-    Perform similarity-based semantic retrieval and return an LLM-generated answer.
+    Perform hybrid (vector + BM25) retrieval with cross-encoder reranking and return an LLM-generated answer.
     user_id is taken from JWT (current_user).
+    Optionally filter by source, category, or doc_type.
     """
     try:
         response = await retrieve_response(
@@ -33,6 +37,9 @@ async def retrieve_endpoint(
             persona_id=payload.persona_id,
             query=payload.query,
             top_k=payload.top_k or 5,
+            source=payload.source,
+            category=payload.category,
+            doc_type=payload.doc_type,
         )
         return response
     except Exception as e:

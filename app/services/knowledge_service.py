@@ -4,7 +4,7 @@ from app.models.knowledge_base import KnowledgeBase
 from app.chunking.chunk import chunk_document_by_page
 import mimetypes
 from app.config import Settings
-from app.services.embedding_service import get_embedding
+from app.services.embedding_service import get_embedding, get_embedding_model_name
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.persona import Persona
@@ -45,10 +45,12 @@ async def ingest_document(
             "user_id": user_id,
             "persona_id": persona_id,
             "page_number": page_number,
-            "doc_type": mime_type,  # now stores MIME type
+            "doc_type": mime_type,
             "timestamp": datetime.utcnow().isoformat(),
             "source": source,
             "category": category,
+            "embedding_model": get_embedding_model_name(),
+            "embedding_dim": Settings.EMBEDDING_DIM,
         }
 
         kb_entry = KnowledgeBase(

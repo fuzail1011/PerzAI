@@ -14,6 +14,12 @@ def _load_local_model():
     return SentenceTransformer(Settings.LOCAL_EMBEDDING_MODEL)
 
 
+def get_embedding_model_name() -> str:
+    if Settings.EMBEDDING_TYPE == "local":
+        return Settings.LOCAL_EMBEDDING_MODEL
+    return Settings.AZURE_DEPLOYMENT
+
+
 async def get_embedding(text: str) -> list:
     if Settings.EMBEDDING_TYPE == "local":
         return await _embed_local(text)
